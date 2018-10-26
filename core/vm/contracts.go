@@ -27,6 +27,8 @@ import (
 	"github.com/ethereum/go-ethereum/crypto/bn256"
 	"github.com/ethereum/go-ethereum/params"
 	"golang.org/x/crypto/ripemd160"
+
+	"github.com/Nik-U/pbc"
 )
 
 // PrecompiledContract is the basic interface for native Go contracts. The implementation
@@ -57,6 +59,8 @@ var PrecompiledContractsByzantium = map[common.Address]PrecompiledContract{
 	common.BytesToAddress([]byte{6}): &bn256Add{},
 	common.BytesToAddress([]byte{7}): &bn256ScalarMul{},
 	common.BytesToAddress([]byte{8}): &bn256Pairing{},
+
+	common.BytesToAddress([]byte{9}): &symmPairingCheck{},	
 }
 
 // RunPrecompiledContract runs and evaluates the output of a precompiled contract.
@@ -357,4 +361,40 @@ func (c *bn256Pairing) Run(input []byte) ([]byte, error) {
 		return true32Byte, nil
 	}
 	return false32Byte, nil
+}
+
+// symmetric bilinear pairing check implemented as a native contract.
+type symmPairingCheck struct{}
+
+// RequiredGas returns the gas required to execute the pre-compiled contract.
+//
+// This method does not require any overflow checking as the input size gas costs
+// required for anything significant is so high it's impossible to pay for.
+func (c *symmPairingCheck) RequiredGas(input []byte) uint64 {
+	// for now, let the cost be 0. Need to approximate this. 
+	return 0
+}
+func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
+	params := pbc.GenerateA(160, 512)
+
+        pairing := params.NewPairing()
+
+        // Initialize group elements
+        g := pairing.NewG1().Rand()
+	u := pairing.NewG1().Rand()
+
+	lhs := pairing.NewGT().Pair(u, g)
+        rhs := pairing.NewGT().Pair(g, u)
+
+	output := make([]byte, 256)
+
+        // Formally checking lhs ?= rhs
+        if lhs.Equals(rhs) {
+                output[0] = 1
+        } else {
+                output[0] = 0
+        }
+
+	return output, nil
+	//return append([]byte("hello"), g.Bytes()...), nil
 }
