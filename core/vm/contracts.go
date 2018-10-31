@@ -29,6 +29,8 @@ import (
 	"golang.org/x/crypto/ripemd160"
 
 	"github.com/Nik-U/pbc"
+	"github.com/ethereum/go-ethereum/log"
+	"strconv"
 )
 
 // PrecompiledContract is the basic interface for native Go contracts. The implementation
@@ -144,9 +146,11 @@ type dataCopy struct{}
 // This method does not require any overflow checking as the input size gas costs
 // required for anything significant is so high it's impossible to pay for.
 func (c *dataCopy) RequiredGas(input []byte) uint64 {
+	// log.Warn("DataCopy - RequiredGas func : Received", string(input[:]), "\n")
 	return uint64(len(input)+31)/32*params.IdentityPerWordGas + params.IdentityBaseGas
 }
 func (c *dataCopy) Run(in []byte) ([]byte, error) {
+	log.Warn("Datacopy : Received", string(in[:]), "\n")
 	return in, nil
 }
 
@@ -371,29 +375,38 @@ type symmPairingCheck struct{}
 // This method does not require any overflow checking as the input size gas costs
 // required for anything significant is so high it's impossible to pay for.
 func (c *symmPairingCheck) RequiredGas(input []byte) uint64 {
+	// log.Warn("Pairing Check - RequiredGas func : Received", string(input[:]), "\n")
 	// for now, let the cost be 0. Need to approximate this. 
-	return 0
+	return 2000
 }
 func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
+	log.Warn("Pairing Check : Received", string(in[:]), "\n")
+
 	params := pbc.GenerateA(160, 512)
 
-        pairing := params.NewPairing()
+	pairing := params.NewPairing()
 
-        // Initialize group elements
-        g := pairing.NewG1().Rand()
+	g := pairing.NewG1().SetBytes(in)
+	log.Warn("Element Length : ", strconv.Itoa(g.BytesLen()))
+	buf := g.Bytes()
+	log.Warn("Value of element : ", g)
+	log.Warn("Received element size", strconv.Itoa(len(buf)))
+	log.Warn("Element Received : ", string(buf[:]))
+	// Initialize group elements
+	// g := pairing.NewG1().Rand()
 	u := pairing.NewG1().Rand()
 
 	lhs := pairing.NewGT().Pair(u, g)
-        rhs := pairing.NewGT().Pair(g, u)
+	rhs := pairing.NewGT().Pair(g, u)
 
 	output := make([]byte, 256)
 
-        // Formally checking lhs ?= rhs
-        if lhs.Equals(rhs) {
-                output[0] = 1
-        } else {
-                output[0] = 0
-        }
+	// Formally checking lhs ?= rhs
+	if lhs.Equals(rhs) {
+			output[0] = 1
+	} else {
+			output[0] = 0
+	}
 
 	return output, nil
 	//return append([]byte("hello"), g.Bytes()...), nil
