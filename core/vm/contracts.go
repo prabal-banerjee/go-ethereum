@@ -28,9 +28,11 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"golang.org/x/crypto/ripemd160"
 
-	"github.com/Nik-U/pbc"
+//	"github.com/Nik-U/pbc"
 	"github.com/ethereum/go-ethereum/log"
-	"strconv"
+//	"strconv"
+//	"encoding/json"
+	"strings"
 )
 
 // PrecompiledContract is the basic interface for native Go contracts. The implementation
@@ -379,35 +381,56 @@ func (c *symmPairingCheck) RequiredGas(input []byte) uint64 {
 	// for now, let the cost be 0. Need to approximate this. 
 	return 2000
 }
+
+func ByteArraytoString(b []byte) string {
+	s := make([]string,len(b))
+	var m uint8;
+	for i := range b {
+		m = b[i]
+		//s[i] = strconv.Itoa(m)
+		s[i] = string(m)
+	}
+	return strings.Join(s,",")
+}
+
 func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
-	log.Warn("Pairing Check : Received", string(in[:]), "\n")
+	log.Warn("Byte array : Received ", string(in[:]), nil)
+	//btos := ByteArraytoString(in)
+	//log.Warn("btos : Received ", btos, "\n")
 
-	params := pbc.GenerateA(160, 512)
+	/*len_G := int(in[0])
+	G_t := append([]byte(nil), in[1:len_G+1]...)
+	param_t := append([]byte(nil), in[(len_G+1):]...)
 
-	pairing := params.NewPairing()
-
-	g := pairing.NewG1().SetBytes(in)
+	log.Warn("G_t : ", string(G_t[:]), "\n")
+	log.Warn("param_t : ", string(param_t[:]), "\n")
+	var s string
+	if err := json.Unmarshal(param_t, &s); err != nil {
+		
+	}
+	log.Warn("s : ", s, "\n")
+	
+	pairing, _ := pbc.NewPairingFromString(s)
+	g := pairing.NewG1().SetBytes(G_t)
+	
 	log.Warn("Element Length : ", strconv.Itoa(g.BytesLen()))
 	buf := g.Bytes()
-	log.Warn("Value of element : ", g)
+	//log.Warn("Value of element : ", g)
 	log.Warn("Received element size", strconv.Itoa(len(buf)))
 	log.Warn("Element Received : ", string(buf[:]))
-	// Initialize group elements
-	// g := pairing.NewG1().Rand()
-	u := pairing.NewG1().Rand()
 
+	u := pairing.NewG1().Rand()
 	lhs := pairing.NewGT().Pair(u, g)
-	rhs := pairing.NewGT().Pair(g, u)
+	rhs := pairing.NewGT().Pair(g, u)*/
 
 	output := make([]byte, 256)
 
 	// Formally checking lhs ?= rhs
-	if lhs.Equals(rhs) {
+	/*if lhs.Equals(rhs) {
 			output[0] = 1
 	} else {
 			output[0] = 0
-	}
+	}*/
 
 	return output, nil
-	//return append([]byte("hello"), g.Bytes()...), nil
 }
