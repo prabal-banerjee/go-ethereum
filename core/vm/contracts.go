@@ -30,8 +30,8 @@ import (
 
 //	"github.com/Nik-U/pbc"
 	"github.com/ethereum/go-ethereum/log"
-//	"strconv"
-//	"encoding/json"
+	"strconv"
+	"encoding/json"
 	"strings"
 )
 
@@ -372,6 +372,10 @@ func (c *bn256Pairing) Run(input []byte) ([]byte, error) {
 // symmetric bilinear pairing check implemented as a native contract.
 type symmPairingCheck struct{}
 
+type Shared struct {
+	G []byte             // shared G 
+	Params string      // shared byte array w.r.t. parameters
+}
 // RequiredGas returns the gas required to execute the pre-compiled contract.
 //
 // This method does not require any overflow checking as the input size gas costs
@@ -379,27 +383,42 @@ type symmPairingCheck struct{}
 func (c *symmPairingCheck) RequiredGas(input []byte) uint64 {
 	// log.Warn("Pairing Check - RequiredGas func : Received", string(input[:]), "\n")
 	// for now, let the cost be 0. Need to approximate this. 
-	return 2000
+	return 4000
 }
 
 func ByteArraytoString(b []byte) string {
 	s := make([]string,len(b))
-	var m uint8;
+	//var m uint8;
 	for i := range b {
-		m = b[i]
+		//m = b[i]
 		//s[i] = strconv.Itoa(m)
-		s[i] = string(m)
+		s[i] = string(b[i])
 	}
 	return strings.Join(s,",")
 }
 
+
+
 func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	log.Warn("Byte array : Received ", string(in[:]), nil)
+	len_in := len(in)
+	str_len_in := strconv.Itoa(len_in)
+	log.Warn("Input length : ", str_len_in, nil)
+
+	var s Shared
+	err := json.Unmarshal(in, &s)
+	if err != nil {
+		return nil, err
+	}
+	log.Warn("s: ", s, nil)
+
+
+
 	//btos := ByteArraytoString(in)
 	//log.Warn("btos : Received ", btos, "\n")
 
 	/*len_G := int(in[0])
-	G_t := append([]byte(nil), in[1:len_G+1]...)
+	G_t := append([]byte(nil), in[1:(len_G+1)]...)
 	param_t := append([]byte(nil), in[(len_G+1):]...)
 
 	log.Warn("G_t : ", string(G_t[:]), "\n")
