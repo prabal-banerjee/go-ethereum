@@ -28,7 +28,7 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"golang.org/x/crypto/ripemd160"
 
-//	"github.com/Nik-U/pbc"
+	"github.com/Nik-U/pbc"
 	"github.com/ethereum/go-ethereum/log"
 	"strconv"
 	"encoding/json"
@@ -403,19 +403,24 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	log.Warn("Byte array : Received ", string(in[:]), nil)
 	len_in := len(in)
 	str_len_in := strconv.Itoa(len_in)
-	log.Warn("Input length : ", str_len_in, nil)
+	log.Warn("len(in) : ", str_len_in, nil)
+	
+	b := make([]byte, 559)
+	for i:= range b{		
+		b[i] = in[32*(i+1)-1]
+	}
+	log.Warn("Byte array : Received ", string(b[:]), nil)
+	btos := ByteArraytoString(b)
+	log.Warn("btos : Received ", btos, nil)
 
 	var s Shared
-	err := json.Unmarshal(in, &s)
-	if err != nil {
-		return nil, err
-	}
-	log.Warn("s: ", s, nil)
+	json.Unmarshal(b, &s)
+	//log.Warn(err.Error())
+	log.Warn("s.G : ", string(s.G[:]), nil)
+	log.Warn("s.Params : ", s.Params, nil)
+	
 
-
-
-	//btos := ByteArraytoString(in)
-	//log.Warn("btos : Received ", btos, "\n")
+	
 
 	/*len_G := int(in[0])
 	G_t := append([]byte(nil), in[1:(len_G+1)]...)
@@ -427,29 +432,27 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	if err := json.Unmarshal(param_t, &s); err != nil {
 		
 	}
-	log.Warn("s : ", s, "\n")
+	log.Warn("s : ", s, "\n")*/
 	
-	pairing, _ := pbc.NewPairingFromString(s)
-	g := pairing.NewG1().SetBytes(G_t)
+	pairing, _ := pbc.NewPairingFromString(s.Params)
+	g := pairing.NewG1().SetBytes(s.G)
 	
-	log.Warn("Element Length : ", strconv.Itoa(g.BytesLen()))
+	log.Warn("Element Length : ", strconv.Itoa(g.BytesLen()), nil)
 	buf := g.Bytes()
-	//log.Warn("Value of element : ", g)
-	log.Warn("Received element size", strconv.Itoa(len(buf)))
-	log.Warn("Element Received : ", string(buf[:]))
+	log.Warn("Element Received : ", string(buf[:]), nil)
 
 	u := pairing.NewG1().Rand()
 	lhs := pairing.NewGT().Pair(u, g)
-	rhs := pairing.NewGT().Pair(g, u)*/
+	rhs := pairing.NewGT().Pair(g, u)
 
 	output := make([]byte, 256)
 
 	// Formally checking lhs ?= rhs
-	/*if lhs.Equals(rhs) {
+	if lhs.Equals(rhs) {
 			output[0] = 1
 	} else {
 			output[0] = 0
-	}*/
+	}
 
 	return output, nil
 }
