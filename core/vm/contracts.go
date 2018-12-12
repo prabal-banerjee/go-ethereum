@@ -28,7 +28,7 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"golang.org/x/crypto/ripemd160"
 
-	"github.com/Nik-U/pbc"
+	// "github.com/Nik-U/pbc"
 	"github.com/ethereum/go-ethereum/log"
 	"strconv"
 	"encoding/json"
@@ -383,7 +383,7 @@ type Shared struct {
 func (c *symmPairingCheck) RequiredGas(input []byte) uint64 {
 	// log.Warn("Pairing Check - RequiredGas func : Received", string(input[:]), "\n")
 	// for now, let the cost be 0. Need to approximate this. 
-	return 4000
+	return 0
 }
 
 func ByteArraytoString(b []byte) string {
@@ -405,9 +405,9 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	str_len_in := strconv.Itoa(len_in)
 	log.Warn("Input length : ", str_len_in, nil)
 
-	// for i := 0; i < 600; i++ {
-	// 	log.Warn(strconv.Itoa(i), string(in[i]), nil)
-	// }
+	for i := 0; i < len_in; i++ {
+		log.Warn(strconv.Itoa(i), string(in[i]), nil)
+	}
 
 	// b := make([]byte, 559)
 	// for i:= range b{		
@@ -416,13 +416,13 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	// log.Warn("Byte array : Received ", string(b[:]), nil)
 
 	var s Shared
-	err := json.Unmarshal(in[32:592], &s)
+	err := json.Unmarshal(in[32:], &s)
 	if err != nil {
 		log.Error("Unmarshal Error", err.Error(), nil)
 		return nil, err
 	}
-	// log.Warn("s.Params: ", s.Params, nil)
-	// log.Warn("s.G: ", s.G, nil)
+	log.Warn("s.Params: ", s.Params, nil)
+	log.Warn("s.G: ", string(s.G), nil)
 
 
 
@@ -442,8 +442,12 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	log.Warn("s : ", s, "\n")
 	*/
 	
-	pairing, _ := pbc.NewPairingFromString(s.Params)
-	g := pairing.NewG1().SetBytes(s.G)
+	// _, err = pbc.NewPairingFromString(s.Params)
+	// if err != nil {
+	// 	log.Error("pbc pairing error", err.Error(), nil)
+	// 	return nil, err
+	// }
+	// g := pairing.NewG1().SetBytes(s.G)
 	
 	// log.Warn("Element Length : ", strconv.Itoa(g.BytesLen()))
 	// buf := g.Bytes()
@@ -451,19 +455,19 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	// log.Warn("Received element size", strconv.Itoa(len(buf)))
 	// log.Warn("Element Received : ", string(buf[:]))
 
-	u := pairing.NewG1().Rand()
-	lhs := pairing.NewGT().Pair(u, g)
-	rhs := pairing.NewGT().Pair(g, u)
+	// u := pairing.NewG1().Rand()
+	// lhs := pairing.NewGT().Pair(u, g)
+	// rhs := pairing.NewGT().Pair(g, u)
 
-	output := make([]byte, 256)
+	// output := make([]byte, 256)
 
-	// Formally checking lhs ?= rhs
-	if lhs.Equals(rhs) {
-			output[0] = '1'
-	} 
+	// // Formally checking lhs ?= rhs
+	// if lhs.Equals(rhs) {
+	// 		output[0] = '1'
+	// } 
 
-	log.Warn("Output:", string(output[:]), nil)
+	// log.Warn("Output:", string(output[:]), nil)
 
-	return output, nil
-	// return []byte("1"), nil
+	// return output, nil
+	return []byte("1"), nil
 }
