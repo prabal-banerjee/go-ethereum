@@ -373,8 +373,14 @@ func (c *bn256Pairing) Run(input []byte) ([]byte, error) {
 type symmPairingCheck struct{}
 
 type Shared struct {
-	G []byte             // shared G 
-	Params string      // shared byte array w.r.t. parameters
+	Params string      // group parameter
+	G []byte           // shared G 
+	U []byte
+	PK []byte
+	MU []byte
+	Sigma []byte
+	I []byte
+	NU []byte
 }
 // RequiredGas returns the gas required to execute the pre-compiled contract.
 //
@@ -421,8 +427,8 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 		log.Error("Unmarshal Error", err.Error(), nil)
 		return nil, err
 	}
-	log.Warn("s.Params: ", s.Params, nil)
-	log.Warn("s.G: ", string(s.G), nil)
+	// log.Warn("s.Params: ", s.Params, nil)
+	// log.Warn("s.G: ", string(s.G), nil)
 
 
 
@@ -455,9 +461,18 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	// log.Warn("Received element size", strconv.Itoa(len(buf)))
 	// log.Warn("Element Received : ", string(buf[:]))
 
-	u := pairing.NewG1().Rand()
-	lhs := pairing.NewGT().Pair(u, g)
-	rhs := pairing.NewGT().Pair(g, u)
+	u := pairing.NewG1().SetBytes(s.U)
+	sigma := pairing.NewG1().SetBytes(s.Sigma)
+	nu := pairing.NewZr().SetBytes(s.NU)
+	mu := pairing.NewZr().SetBytes(s.MU)
+	pubKey := pairing.NewG1().SetBytes(s.PK)
+
+	hash := sha256.New()
+	hash.Write(s.I)
+	h := pairing.NewG1().SetFromHash(hash.Sum(nil))
+	lhs := pairing.NewGT().Pair(sigma, g)
+	rhs := pairing.NewGT().Pair(pairing.NewG1().Mul(pairing.NewG1().PowZn(h, nu) , pairing.NewG1().PowZn(u, mu)), pubKey)
+
 
 	output := make([]byte, 1)
 
