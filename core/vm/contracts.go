@@ -449,7 +449,6 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	// log.Warn("Byte array : Received ", string(b[:]), nil)
 
 	var s SharedParams
-	var s Shared
 	err := json.Unmarshal(in[32:], &s)
 	if err != nil {
 		log.Error("Unmarshal Error", err.Error(), nil)
@@ -492,12 +491,6 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	
 	//pairing, _ := pbc.NewPairingFromString(s.Params)
 	//g := pairing.NewG1().SetBytes(s.G)
-	pairing, err := pbc.NewPairingFromString(s.Params)
-	if err != nil {
-		log.Error("pbc pairing error", err.Error(), nil)
-		return nil, err
-	}
-	
 	
 	// log.Warn("Element Length : ", strconv.Itoa(g.BytesLen()))
 	// buf := g.Bytes()
