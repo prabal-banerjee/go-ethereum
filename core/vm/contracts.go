@@ -372,10 +372,30 @@ func (c *bn256Pairing) Run(input []byte) ([]byte, error) {
 // symmetric bilinear pairing check implemented as a native contract.
 type symmPairingCheck struct{}
 
-type Shared struct {
+/*type Shared struct {
 	G []byte             // shared G 
 	Params string      // shared byte array w.r.t. parameters
+}*/
+
+type Shared struct {
+	MU []byte
+	Sigma []byte
+	I []byte
+	NU []byte
 }
+var structVar []Shared
+
+type SharedParams struct {
+	//Params []byte      // group parameter
+	Params string
+	G []byte           // shared G 
+	U []byte
+	PK []byte
+	AggrSigma []byte
+	AggrMU []byte
+	structVars []Shared
+}
+
 // RequiredGas returns the gas required to execute the pre-compiled contract.
 //
 // This method does not require any overflow checking as the input size gas costs
@@ -405,9 +425,9 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	str_len_in := strconv.Itoa(len_in)
 	log.Warn("Input length : ", str_len_in, nil)
 
-	// for i := 0; i < 600; i++ {
-	// 	log.Warn(strconv.Itoa(i), string(in[i]), nil)
-	// }
+	//for i := 0; i < len_in; i++ {
+	//	log.Warn(strconv.Itoa(i), string(in[i]), nil)
+	//}
 
 	// b := make([]byte, 559)
 	// for i:= range b{		
@@ -415,12 +435,26 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	// }
 	// log.Warn("Byte array : Received ", string(b[:]), nil)
 
-	var s Shared
-	err := json.Unmarshal(in[32:592], &s)
+	var s SharedParams
+	err := json.Unmarshal(in[32:], &s)
 	if err != nil {
 		log.Error("Unmarshal Error", err.Error(), nil)
 		return nil, err
 	}
+
+	pairing, err := pbc.NewPairingFromString(s.Params)
+	if err != nil {
+		log.Error("Params Not correctly passed", err.Error(), nil)
+		return nil, err
+	}
+
+	g := pairing.NewG1().SetBytes(s.G)
+	u := pairing.NewG1().SetBytes(s.U)
+	//pk := pairing.NewG1().SetBytes(s.PK)
+
+	//aggrSigma := pairing.NewG1().SetBytes(s.AggrSigma)
+	aggrMU := pairing.NewZr().SetBytes(s.AggrMU)
+
 	// log.Warn("s.Params: ", s.Params, nil)
 	// log.Warn("s.G: ", s.G, nil)
 
@@ -442,8 +476,8 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	log.Warn("s : ", s, "\n")
 	*/
 	
-	pairing, _ := pbc.NewPairingFromString(s.Params)
-	g := pairing.NewG1().SetBytes(s.G)
+	//pairing, _ := pbc.NewPairingFromString(s.Params)
+	//g := pairing.NewG1().SetBytes(s.G)
 	
 	// log.Warn("Element Length : ", strconv.Itoa(g.BytesLen()))
 	// buf := g.Bytes()
@@ -451,9 +485,10 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	// log.Warn("Received element size", strconv.Itoa(len(buf)))
 	// log.Warn("Element Received : ", string(buf[:]))
 
-	u := pairing.NewG1().Rand()
-	lhs := pairing.NewGT().Pair(u, g)
-	rhs := pairing.NewGT().Pair(g, u)
+	//u := pairing.NewG1().Rand()
+	
+	lhs := pairing.NewGT().Pair(pairing.NewG1().PowZn(u, aggrMU), g)
+	rhs := pairing.NewGT().Pair(pairing.NewG1().PowZn(g, aggrMU), u)
 
 	output := make([]byte, 256)
 
