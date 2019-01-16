@@ -372,25 +372,27 @@ func (c *bn256Pairing) Run(input []byte) ([]byte, error) {
 // symmetric bilinear pairing check implemented as a native contract.
 type symmPairingCheck struct{}
 
-<<<<<<< HEAD
 /*type Shared struct {
 	G []byte             // shared G 
 	Params string      // shared byte array w.r.t. parameters
 }*/
 
-type Shared struct {
-=======
-type Shared struct {
+/*type Shared struct {
 	Params string      // group parameter
 	G []byte           // shared G 
 	U []byte
 	PK []byte
->>>>>>> 30b2857a4fa19271fe5e4347e3e8b64086a0036f
 	MU []byte
 	Sigma []byte
 	I []byte
 	NU []byte
-<<<<<<< HEAD
+}*/
+
+type Shared struct {
+	MU []byte
+	Sigma []byte
+	I []byte
+	NU []byte
 }
 var structVar []Shared
 
@@ -403,8 +405,6 @@ type SharedParams struct {
 	AggrSigma []byte
 	AggrMU []byte
 	structVars []Shared
-=======
->>>>>>> 30b2857a4fa19271fe5e4347e3e8b64086a0036f
 }
 
 // RequiredGas returns the gas required to execute the pre-compiled contract.
@@ -436,27 +436,20 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	str_len_in := strconv.Itoa(len_in)
 	log.Warn("Input length : ", str_len_in, nil)
 
-<<<<<<< HEAD
 	//for i := 0; i < len_in; i++ {
 	//	log.Warn(strconv.Itoa(i), string(in[i]), nil)
 	//}
-=======
 	// for i := 0; i < len_in; i++ {
 	// 	log.Warn(strconv.Itoa(i), string(in[i]), nil)
 	// }
->>>>>>> 30b2857a4fa19271fe5e4347e3e8b64086a0036f
-
 	// b := make([]byte, 559)
 	// for i:= range b{		
 	// 	b[i] = in[32*(i+1)]
 	// }
 	// log.Warn("Byte array : Received ", string(b[:]), nil)
 
-<<<<<<< HEAD
 	var s SharedParams
-=======
 	var s Shared
->>>>>>> 30b2857a4fa19271fe5e4347e3e8b64086a0036f
 	err := json.Unmarshal(in[32:], &s)
 	if err != nil {
 		log.Error("Unmarshal Error", err.Error(), nil)
@@ -497,17 +490,14 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	log.Warn("s : ", s, "\n")
 	*/
 	
-<<<<<<< HEAD
 	//pairing, _ := pbc.NewPairingFromString(s.Params)
 	//g := pairing.NewG1().SetBytes(s.G)
-=======
 	pairing, err := pbc.NewPairingFromString(s.Params)
 	if err != nil {
 		log.Error("pbc pairing error", err.Error(), nil)
 		return nil, err
 	}
-	g := pairing.NewG1().SetBytes(s.G)
->>>>>>> 30b2857a4fa19271fe5e4347e3e8b64086a0036f
+	
 	
 	// log.Warn("Element Length : ", strconv.Itoa(g.BytesLen()))
 	// buf := g.Bytes()
@@ -515,12 +505,12 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	// log.Warn("Received element size", strconv.Itoa(len(buf)))
 	// log.Warn("Element Received : ", string(buf[:]))
 
-<<<<<<< HEAD
 	//u := pairing.NewG1().Rand()
 	
 	lhs := pairing.NewGT().Pair(pairing.NewG1().PowZn(u, aggrMU), g)
 	rhs := pairing.NewGT().Pair(pairing.NewG1().PowZn(g, aggrMU), u)
-=======
+	
+	/*g := pairing.NewG1().SetBytes(s.G)
 	u := pairing.NewG1().SetBytes(s.U)
 	sigma := pairing.NewG1().SetBytes(s.Sigma)
 	nu := pairing.NewZr().SetBytes(s.NU)
@@ -531,10 +521,7 @@ func (c *symmPairingCheck) Run(in []byte) ([]byte, error) {
 	hash.Write(s.I)
 	h := pairing.NewG1().SetFromHash(hash.Sum(nil))
 	lhs := pairing.NewGT().Pair(sigma, g)
-	rhs := pairing.NewGT().Pair(pairing.NewG1().Mul(pairing.NewG1().PowZn(h, nu) , pairing.NewG1().PowZn(u, mu)), pubKey)
-
->>>>>>> 30b2857a4fa19271fe5e4347e3e8b64086a0036f
-
+	rhs := pairing.NewGT().Pair(pairing.NewG1().Mul(pairing.NewG1().PowZn(h, nu) , pairing.NewG1().PowZn(u, mu)), pubKey)*/
 	output := make([]byte, 1)
 
 	// Formally checking lhs ?= rhs
