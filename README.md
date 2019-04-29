@@ -1,4 +1,4 @@
-Ethereum fork used to implement Blockchain Enabled Privacy Preserving Data Audit. Edited core/vm/contracts.go to add a pre-compiled contract.
+Ethereum fork used to implement Blockchain Enabled Privacy Preserving Data Audit. Edited `core/vm/contracts.go` to add a pre-compiled contract.
 
 ## Go Ethereum
 
